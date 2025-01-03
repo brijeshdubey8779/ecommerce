@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from website import app, db, login_manager
-from website.models import Products, User
+from website.models import Products, User, CartItem
 from website.forms import RegisterForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -122,8 +122,51 @@ def update_profile():
 
     return render_template("update_profile.html", user=user)
 
+@app.route("/cart")
+@login_required
+def cart():
+    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+    total_price = sum([item.products.price * item.quantity for item in cart_items])
+    original_price = sum([item.products.original_price * item.quantity for item in cart_items])
+    savings = original_price-total_price
+    store_pickup= 10
+    tax=00
+    final_price= total_price + store_pickup + tax
+    bill = {
+        'total_price':total_price,
+        'original_price':original_price,
+        'savings':savings,
+        'store_pickup':store_pickup,
+        'tax':tax,
+        'final_price':final_price,
+    }
+    print(final_price)
+    return render_template("cart.html", cart_items=cart_items, bill=bill)
+
+@app.route("/add_to_cart/<int:product_id>", methods=['GET', "POST"])
+@login_required
+def add_to_cart(product_id):
+    product = Products.query.get_or_404(product_id)  # Get the product by ID
+    
+    # Check if the product is already in the user's cart
+    cart_item = CartItem.query.filter_by(user_id=current_user.id, product_id=product.id).first()
+    
+    if cart_item:
+        # If the product is already in the cart, increase the quantity
+        cart_item.quantity += 1
+        flash(f"Added another {product.name} to your cart.", "success")
+    else:
+        # If the product is not in the cart, create a new cart item
+        cart_item = CartItem(user_id=current_user.id, product_id=product.id, quantity=1)
+        db.session.add(cart_item)
+        flash(f"Added {product.name} to your cart.", "success")
+    
+    db.session.commit()  # Commit the transaction to save the changes
+    return redirect(url_for("products"))  # Redirect back to the products page or wherever you'd like
+
 @app.route('/logout')
 def logout():
+    logout_user()
     session.pop('user_id', None)  # Remove user from session
     session.pop('username', None)
     flash('You have been logged out.', 'info')
