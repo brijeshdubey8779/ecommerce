@@ -1,0 +1,44 @@
+{% extends 'base.html' %} {% block title %} Profile {% endblock %} {% block
+    content %}
+
+    <div class="max-w-4xl mx-auto bg-white p-8 mt-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-semibold text-center text-gray-700 mb-6">Profile Details</h1>
+
+        <!-- User Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- User Info Section -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">User Information</h2>
+                <div class="space-y-4">
+                    <div>
+                        <strong class="text-gray-600">Full Name:</strong>
+                        <p class="text-gray-700">{{ user.full_name }}</p>
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Username:</strong>
+                        <p class="text-gray-700">{{ user.username }}</p>
+                    </div>
+                    <div>
+                        <strong class="text-gray-600">Email:</strong>
+                        <p class="text-gray-700">{{ user.email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Actions</h2>
+                <div class="space-y-4">
+                    <p class="text-gray-700">Update your profile details or change your password.</p>
+                    <a href="{{ url_for('update_profile') }}" class="block text-center text-white bg-blue-600 hover:bg-blue-700 rounded-lg py-2 px-6">Update Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="mt-8 text-center">
+            <a href="{{ url_for('logout') }}" class="text-red-600 hover:text-red-800">Logout</a>
+        </div>
+    </div>
+
+{% endblock %}
