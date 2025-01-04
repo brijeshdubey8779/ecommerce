@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from website import app, db, login_manager
 from website.models import Products, User, CartItem
 from website.forms import RegisterForm
@@ -140,7 +140,6 @@ def cart():
         'tax':tax,
         'final_price':final_price,
     }
-    print(final_price)
     return render_template("cart.html", cart_items=cart_items, bill=bill)
 
 @app.route("/add_to_cart/<int:product_id>", methods=['GET', "POST"])
@@ -150,19 +149,47 @@ def add_to_cart(product_id):
     
     # Check if the product is already in the user's cart
     cart_item = CartItem.query.filter_by(user_id=current_user.id, product_id=product.id).first()
-    
+    print(cart_item)
     if cart_item:
-        # If the product is already in the cart, increase the quantity
-        cart_item.quantity += 1
         flash(f"Added another {product.name} to your cart.", "success")
     else:
-        # If the product is not in the cart, create a new cart item
         cart_item = CartItem(user_id=current_user.id, product_id=product.id, quantity=1)
         db.session.add(cart_item)
         flash(f"Added {product.name} to your cart.", "success")
     
-    db.session.commit()  # Commit the transaction to save the changes
-    return redirect(url_for("products"))  # Redirect back to the products page or wherever you'd like
+    db.session.commit() 
+    return redirect(url_for("products"))  
+
+@app.route('/update-quantity', methods=['POST'])
+def update_quantity():
+    try:
+        # Debug: print the raw data to check the incoming request
+        print(request.data)  # This prints the raw body as bytes
+
+        # Parse the incoming JSON data
+        data = request.get_json()
+        print(data)  # This prints the parsed JSON data
+
+        # Get the product_id and quantity from the data
+        product_id = data.get('product_id') 
+        quantity = data.get('quantity')
+
+        if product_id is None or quantity is None:
+            return jsonify({"status": "error", "message": "Missing product_id or quantity"}), 400
+
+        # Find the cart item for the product
+        cart_item = CartItem.query.filter_by(product_id=product_id).first()
+
+        if cart_item:
+            cart_item.quantity = quantity
+            db.session.commit()
+            return jsonify({"status": "success", "message": "Quantity updated successfully!"}), 200
+        else:
+            return jsonify({"status": "error", "message": "Product not found in the cart!"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 
 @app.route('/logout')
 def logout():
