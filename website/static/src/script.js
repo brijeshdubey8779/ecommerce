@@ -40,18 +40,27 @@ function updateQuantityInBackend(productID, quantity, csrfToken) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken  
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({ product_id: productID, quantity: quantity })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            console.log(data.message);  // Log success message
-        } else {
-            console.error(data.message);  // Log error message
-        }
-    })
-    .catch(error => console.error('Error:', error));  // Log any errors
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log(data.message);  // Log success message
+            } else {
+                console.error(data.message);  // Log error message
+            }
+        })
+        .catch(error => console.error('Error:', error));  // Log any errors
 }
 
+
+
+const toggleButton = document.getElementById("navbar-toggle");
+const navbarMenu = document.getElementById("navbar-default");
+
+toggleButton.addEventListener("click", function () {
+    console.log("hello")
+    navbarMenu.classList.toggle("hidden")
+});
